@@ -6,10 +6,13 @@ from threading import Timer
 from time import sleep
 from ScriptRun import *
 
-HOST = '172.8.1.102'    # The remote host
-PORT = 8086              # The same port as used by the server
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((HOST, PORT))
+HOST = '192.168.1.56'    # The remote host
+PORT = 8080             # The same port as used by the server
+
+def connect_dvr(ip, port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((HOST, PORT))
+    return s
 
 def process_data(data):
     parse_data = data.split('&')
@@ -43,21 +46,22 @@ def recv_timer(sock):
 
         sleep(1)
 
+s = connect_dvr(HOST,PORT)
+s.sendall('hello')
 timer = Timer(1,recv_timer,[s])
 timer.start()
-
 
 while True:
     send_data = raw_input(">>> ")
     if send_data == 'quit':
         break;
-    if send_data.find('(') and send_data.find(')'):
+    if send_data.find('(') != -1 or send_data.find(')') != -1:
         print('Invalid input\n')
     else:
         s.sendall( send_data + '()--end--')
 
 print('Close Socket. quit program.')
-timer.cancel()
 s.close()
+timer.cancel()
 
 sys.exit(0)

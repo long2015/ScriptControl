@@ -12,6 +12,8 @@ class ScriptWindow(QWidget):
     def __init__(self):
         super(ScriptWindow, self).__init__()
 
+        self.connctState = False
+
         # create widget
 
         # device info: ip port
@@ -51,6 +53,19 @@ class ScriptWindow(QWidget):
         self.connect(self.recordButton, QtCore.SIGNAL('clicked()'), self.OnRecord)
         self.connect(self.loadButton, QtCore.SIGNAL('clicked()'), self.OnLoadFile)
         self.connect(self.quitButton, QtCore.SIGNAL('clicked()'), self.OnQuit)
+        self.connect(self.connectButton, QtCore.SIGNAL('clicked()'), self.OnConnect)
+
+    def OnConnect(self):
+        if self.connctState:
+            self.ipLine.setDisabled(True)
+            self.portLine.setDisabled(True)
+            self.connectButton.setText('Disconnect')
+            self.connctState = False
+        else:
+            self.ipLine.setEnabled(True)
+            self.portLine.setEnabled(True)
+            self.connectButton.setText('Connect')
+            self.connctState = True
 
     def OnRecord(self):
         self.textEdit.setText('OnRecord')

@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# A simple setup script to create an executable using PyQt4. This also
-# demonstrates the method for creating a Windows executable that does not have
-# an associated console.
-#
 # ScripyControlPyQt.py is a very simple type of PyQt4 application
 #
 # Run the build process by running the command 'python setup.py build'
@@ -28,9 +24,9 @@ executables = [
     Executable('ScripyControlPyQt.py', base=base)
 ]
 
-setup(name='simple_PyQt4',
+setup(name='ScripyControl',
       version='0.1',
-      description='Sample cx_Freeze PyQt4 script',
+      description='GUI AutoTest',
       options=options,
       executables=executables
       )
