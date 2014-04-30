@@ -48,7 +48,7 @@ class ScriptCtrol(object):
         # param = parse_data[1][7:-1].split(',')
         # print type(method), type(param)
         # print('Method:%s,Param:%s,\n' % (method, list(param)))
-
+        print('Data', data)
         if self.sigfunc != None:
                 self.sigfunc(data)
         return

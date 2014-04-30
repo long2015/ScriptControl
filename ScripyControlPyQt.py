@@ -22,7 +22,7 @@ class ScriptWindow(QWidget):
         # 
         # device info: ip port
         self.setWindowTitle('ScriptAutoTest')
-        self.ipLine = QLineEdit('10.33.8.164')
+        self.ipLine = QLineEdit('192.168.1.56')
         self.portLine = QLineEdit('8080')
         self.connectButton = QPushButton('Connect',self)
         self.topGrid = QGridLayout()
@@ -99,7 +99,7 @@ class ScriptWindow(QWidget):
         print('ReveiveFunc:%s,' % data)
         self.data += data
 
-        # self.textEdit.setText(self.data)
+        self.textEdit.setText(self.data)
 
     def OnSend(self):
         data = str(self.inputEdit.text())
