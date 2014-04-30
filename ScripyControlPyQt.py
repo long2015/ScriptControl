@@ -50,9 +50,11 @@ class ScriptWindow(QWidget):
         # bottom layout
         self.inputEdit = QLineEdit()
         self.sendButton = QPushButton('Send', self)
+        self.clearButton = QPushButton('clear', self)
         self.bottomLayout = QGridLayout()
         self.bottomLayout.addWidget(self.inputEdit,0,0)
         self.bottomLayout.addWidget(self.sendButton,0,1)
+        self.bottomLayout.addWidget(self.clearButton,0,2)
 
         # widget layout
         self.mainLayout = QVBoxLayout()
@@ -69,6 +71,8 @@ class ScriptWindow(QWidget):
         self.connect(self.quitButton, QtCore.SIGNAL('clicked()'), self.OnQuit)
         self.connect(self.connectButton, QtCore.SIGNAL('clicked()'), self.OnConnect)
         self.connect(self.sendButton, QtCore.SIGNAL('clicked()'), self.OnSend)
+        self.connect(self.clearButton, QtCore.SIGNAL('clicked()'), self.OnClear)
+        QtCore.QObject.connect(self, QtCore.SIGNAL("updateText()"), self.OnUpdate)
 
     def OnConnect(self):
         scriptctrl = self.scriptctrl
@@ -95,16 +99,26 @@ class ScriptWindow(QWidget):
         self.ipLine.setDisabled(state)
         self.portLine.setDisabled(state)
 
+    def OnUpdate(self):
+        print('OnUpdate')
+        self.textEdit.setText(self.data)
+
     def ReveiveFunc(self,data):
         print('ReveiveFunc:%s,' % data)
-        self.data += data
-
-        self.textEdit.setText(self.data)
+        self.data += (data + '\n')
+        self.emit(QtCore.SIGNAL("updateText()"))
 
     def OnSend(self):
         data = str(self.inputEdit.text())
         print('Type:',type(data))
+        self.data += (data + '\n')
+        self.OnUpdate()
+        self.inputEdit.setText('')
         self.scriptctrl.send(data)
+
+    def OnClear(self):
+        self.data = ''
+        self.OnUpdate()
 
     def OnRecord(self):
         self.textEdit.setText('OnRecord')

@@ -89,6 +89,8 @@ class ScriptCtrol(object):
                 recv_data += data[:end_pos]
                 # parse data and do it
                 self.process_data(recv_data);
+                # process finish clear data
+                recv_data = ''
 
             sleep(1)
         print('Exit recv_timer()')
