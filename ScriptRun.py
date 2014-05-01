@@ -1,6 +1,6 @@
 
 def on_help(list_data):
-    result = ''
+    result = 'Support Command:  '
 
     for i in range(len(list_data)):
         result += '%s  ' % list_data[i]

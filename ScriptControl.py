@@ -1,16 +1,18 @@
 # -*- encoding: utf-8 -*-
 
+from ScriptRun import *
 import socket
 import sys
+import os
 from threading import Timer
 from time import sleep
-from ScriptRun import *
+import json
 
 HOST = '172.8.1.101'    # The remote host
 PORT = 8086             # The same port as used by the server
 
-Methods = {}
-Methods['help'] = on_help
+methodlist = {}
+methodlist['help'] = on_help
 
 class ScriptCtrol(object):
     """docstring for ClassName"""
@@ -43,21 +45,14 @@ class ScriptCtrol(object):
         return self.connct_state
 
     def process_data(self, data):
-        # parse_data = data.split('&')
-        # method = parse_data[0][7:]
-        # param = parse_data[1][7:-1].split(',')
-        # print type(method), type(param)
-        # print('Method:%s,Param:%s,\n' % (method, list(param)))
         print('Data', data)
-        if self.sigfunc != None:
-                self.sigfunc(data)
-        return
-        
-        func = Methods[method]
+        data_dict = eval(data)
+        # print('Dict', data_dict)
+   
+        func = methodlist[data_dict['method']]
         print '\n\nMeths type:',type(func)
         if func != None:
-            result = func(list(param))
-            print('Func:', self.sigfunc)
+            result = func(data_dict['param'])
             if self.sigfunc != None:
                 self.sigfunc(result)
             print result
@@ -68,7 +63,20 @@ class ScriptCtrol(object):
         if data.find('(') == -1 and data.find(')') == -1:
             data += '()'
 
-        self.socket.sendall(data + '--end--')
+        self.socket.sendall('--start--' + data + '--end--')
+    def send_from_file(self, filepath):
+        if os.path.isfile(filepath) == False:
+            return False
+
+        f = open(filepath,'r')
+        while True:
+            data = f.read(1024)
+            if not data:
+                break
+
+            self.send(data)
+
+        return True
 
     def recv_timer(self):
         start_pos = 0
@@ -78,15 +86,21 @@ class ScriptCtrol(object):
         while self.receive_loop:
             data = self.socket.recv(1024)
             print('ReceiveData[%s]\n' % repr(data))
-            start_pos = data.find('--start--\n')
+            start_pos = data.find('--start--')
             end_pos = data.find('--end--')
             # print start_pos,end_pos
 
             if start_pos != -1 and end_pos == -1:
                 start_pos += 10
-                recv_data = data[start_pos:]
-            elif start_pos == -1 and end_pos != -1:
-                recv_data += data[:end_pos]
+                recv_data = data[start_pos+9:]
+            elif start_pos == -1 and end_pos == -1:
+                recv_data += data
+            elif end_pos != -1:
+                if start_pos != -1:
+                    recv_data = data[start_pos+9:end_pos]
+                else:
+                    recv_data += data[:end_pos]
+
                 # parse data and do it
                 self.process_data(recv_data);
                 # process finish clear data

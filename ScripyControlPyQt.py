@@ -25,6 +25,7 @@ class ScriptWindow(QWidget):
         self.ipLine = QLineEdit('192.168.1.56')
         self.portLine = QLineEdit('8080')
         self.connectButton = QPushButton('Connect',self)
+        self.connectButton.setFocus()
         self.topGrid = QGridLayout()
         self.topGrid.addWidget(self.ipLine,0,0)
         self.topGrid.addWidget(self.portLine,0,3)
@@ -46,6 +47,9 @@ class ScriptWindow(QWidget):
 
         # text show widget
         self.textEdit = QTextEdit()
+        self.textEdit.setReadOnly(True)
+        c = QColor(0x666666)
+        self.textEdit.setTextColor(c)
 
         # bottom layout
         self.inputEdit = QLineEdit()
@@ -93,6 +97,7 @@ class ScriptWindow(QWidget):
             self.connectButton.setText('Connect')
         else:
             self.connectButton.setText('Disconnect')
+            self.inputEdit.setFocus()
 
         self.recordButton.setEnabled(state)
         self.loadButton.setEnabled(state)
@@ -110,6 +115,9 @@ class ScriptWindow(QWidget):
 
     def OnSend(self):
         data = str(self.inputEdit.text())
+        if len(data) == 0:
+            return
+
         print('Type:',type(data))
         self.data += (data + '\n')
         self.OnUpdate()
@@ -129,18 +137,26 @@ class ScriptWindow(QWidget):
             button.setText('Record')
 
     def OnLoadFile(self):
-        self.textEdit.setText('loadButton')
-        button = self.loadButton
-        print(os.getenv('HOME'))
-        filename = QFileDialog.getOpenFileName(self, 'Open file', 'C:/')
-        self.textEdit.setText('fileName:%s,\n' % filename)
+        filename = QFileDialog.getOpenFileName(self, 'Open file', './')
+        if self.scriptctrl.send_from_file(filename):
+            self.data += 'send file successed!\n'
+        else:
+            self.data += 'send file Failed.\n'
+        self.OnUpdate()
 
     def OnQuit(self):
         reply = QMessageBox.question(self, 'Quit', "Are you sure to quit?",
             QMessageBox.Yes,QMessageBox.No)
         if reply == QMessageBox.Yes:
             print('quit ')
-            sys.exit(0)
+            app.exit(0)
+
+    # key event
+    def keyReleaseEvent(self, keyEvent):
+        if keyEvent.key() == 0x01000004 and self.inputEdit.hasFocus():
+            self.OnSend()
+        elif keyEvent.key() == 0x01000000:
+            app.exit(0)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
