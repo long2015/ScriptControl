@@ -13,6 +13,8 @@ PORT = 8086             # The same port as used by the server
 
 methodlist = {}
 methodlist['help'] = on_help
+methodlist['startRec'] = on_startRec
+# methodlist['sopRec'] = on_stopRec
 
 class ScriptCtrol(object):
     """docstring for ClassName"""
@@ -21,6 +23,7 @@ class ScriptCtrol(object):
         self.sigfunc = None
         self.connct_state = False
         self.receive_loop = True
+        self.record_file = None
 
     def attach(self,func):
         self.sigfunc = func
@@ -44,15 +47,35 @@ class ScriptCtrol(object):
     def get_connstate(self):
         return self.connct_state
 
+    def preprocess(self, data):
+        data = data.split(' ')
+        if data[0] == 'startRec':
+            self.pre_startRec(data[1])
+
+        return 'startRec'
+
+    def pre_startRec(self, file):
+        self.record_file = open(file,'w')
+
     def process_data(self, data):
         print('Data', data)
         data_dict = eval(data)
         # print('Dict', data_dict)
-   
-        func = methodlist[data_dict['method']]
+        method = data_dict['method']
+        if method == 'stopRec':
+            print 'close file '
+            self.record_file.close()
+            self.record_file = None
+            return
+
+        func = methodlist[method]
         print '\n\nMeths type:',type(func)
         if func != None:
             result = func(data_dict['param'])
+            if method == 'startRec':
+                print type(result)
+                self.record_file.write(result)
+
             if self.sigfunc != None:
                 self.sigfunc(result)
             print result
@@ -115,10 +138,12 @@ if __name__ == '__main__':
 
     while True:
         send_data = raw_input(">>> ")
-        if send_data == 'quit':
-            break
-        elif len(send_data) == 0:
+        if len(send_data) == 0:
             continue
+        elif send_data == 'quit':
+            break
+        else:
+            send_data = self.preprocess(send_data)
 
         script_client.send(send_data)
 

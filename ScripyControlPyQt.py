@@ -129,12 +129,21 @@ class ScriptWindow(QWidget):
         self.OnUpdate()
 
     def OnRecord(self):
-        self.textEdit.setText('OnRecord')
         button = self.recordButton
         if button.text() == 'Record':
+            self.StartRec()
             button.setText('Stop')
         else:
+            self.StopRec()
             button.setText('Record')
+    def StartRec(self):
+        filename = QFileDialog.getSaveFileName(self, 'Save file', './recod.txt')
+        print filename
+        self.scriptctrl.pre_startRec(filename)
+        self.scriptctrl.send('startRec')
+
+    def StopRec(self):
+        self.scriptctrl.send('stopRec')
 
     def OnLoadFile(self):
         filename = QFileDialog.getOpenFileName(self, 'Open file', './')
@@ -153,8 +162,11 @@ class ScriptWindow(QWidget):
 
     # key event
     def keyReleaseEvent(self, keyEvent):
-        if keyEvent.key() == 0x01000004 and self.inputEdit.hasFocus():
-            self.OnSend()
+        if keyEvent.key() == 0x01000004:
+            if self.inputEdit.hasFocus():
+                self.OnSend()
+            elif self.connectButton.hasFocus():
+                self.OnConnect()
         elif keyEvent.key() == 0x01000000:
             app.exit(0)
 
