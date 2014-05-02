@@ -66,6 +66,18 @@ class ScriptWindow(QWidget):
         self.mainLayout.addLayout(self.topGrid)
         self.mainLayout.addWidget(self.textEdit)
         self.mainLayout.addLayout(self.bottomLayout)
+
+        # testwidget = QWidget()
+        # testwidget.setLayout(self.mainLayout)
+        # testEdit = QTextEdit('test tab')
+        # self.tabWidget = QTabWidget()
+        # icon = QIcon('nopic');
+        # self.tabWidget.setIconSize(QtCore.QSize(10,20))
+        # self.tabWidget.addTab(testwidget,icon,'ScriptCtrol')
+        # self.tabWidget.addTab(testEdit,'test tab')
+        # layout = QHBoxLayout()
+        # layout.addWidget(self.tabWidget)
+        # self.setLayout(layout)
         self.setLayout(self.mainLayout)
         self.resize(400,300)
 
@@ -139,7 +151,7 @@ class ScriptWindow(QWidget):
     def StartRec(self):
         filename = QFileDialog.getSaveFileName(self, 'Save file', './recod.txt')
         print filename
-        self.scriptctrl.pre_startRec(filename)
+        self.scriptctrl.set_recfilename(filename)
         self.scriptctrl.send('startRec')
 
     def StopRec(self):
@@ -158,6 +170,7 @@ class ScriptWindow(QWidget):
             QMessageBox.Yes,QMessageBox.No)
         if reply == QMessageBox.Yes:
             print('quit ')
+            self.scriptctrl.disconnect()
             app.exit(0)
 
     # key event
