@@ -22,8 +22,8 @@ class ScriptWindow(QWidget):
         # 
         # device info: ip port
         self.setWindowTitle('ScriptAutoTest')
-        self.ipLine = QLineEdit('192.168.1.56')
-        self.portLine = QLineEdit('8080')
+        self.ipLine = QLineEdit('172.8.1.101')
+        self.portLine = QLineEdit('8086')
         self.connectButton = QPushButton('Connect',self)
         self.connectButton.setFocus()
         self.topGrid = QGridLayout()
@@ -37,13 +37,15 @@ class ScriptWindow(QWidget):
         # control command
         self.recordButton = QPushButton('Record', self)
         self.loadButton = QPushButton('Load', self)
+        self.snapButton = QPushButton('Snap', self)
         self.recordButton.setEnabled(False)
         self.loadButton.setEnabled(False)
         self.quitButton = QPushButton('Quit', self)
         self.toolGrid = QGridLayout()
         self.toolGrid.addWidget(self.recordButton,0,0)
         self.toolGrid.addWidget(self.loadButton,0,1)
-        self.toolGrid.addWidget(self.quitButton,0,2)
+        self.toolGrid.addWidget(self.snapButton,0,2)
+        self.toolGrid.addWidget(self.quitButton,0,3)
 
         # text show widget
         self.textEdit = QTextEdit()
@@ -84,6 +86,7 @@ class ScriptWindow(QWidget):
         # sigal slot
         self.connect(self.recordButton, QtCore.SIGNAL('clicked()'), self.OnRecord)
         self.connect(self.loadButton, QtCore.SIGNAL('clicked()'), self.OnLoadFile)
+        self.connect(self.snapButton, QtCore.SIGNAL('clicked()'), self.OnSnap)
         self.connect(self.quitButton, QtCore.SIGNAL('clicked()'), self.OnQuit)
         self.connect(self.connectButton, QtCore.SIGNAL('clicked()'), self.OnConnect)
         self.connect(self.sendButton, QtCore.SIGNAL('clicked()'), self.OnSend)
@@ -159,10 +162,18 @@ class ScriptWindow(QWidget):
 
     def OnLoadFile(self):
         filename = QFileDialog.getOpenFileName(self, 'Open file', './')
+        if not os.path.isfile(filename):
+            return
         if self.scriptctrl.send_from_file(filename):
             self.data += 'send file successed!\n'
         else:
             self.data += 'send file Failed.\n'
+        self.OnUpdate()
+
+    def OnSnap(self):
+        print("Snap one picture")
+        self.scriptctrl.send("Screen('test.png')")
+        self.data += 'Screen("/var/test.png")'
         self.OnUpdate()
 
     def OnQuit(self):

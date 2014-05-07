@@ -25,6 +25,7 @@ class ScriptCtrol(object):
         self.sigfunc = func
 
     def connect_dvr(self, ip, port):
+        print('ip:%s,port:%d' % (ip,port))
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((ip, port))
 
@@ -67,7 +68,8 @@ class ScriptCtrol(object):
         if data.find('(') == -1 and data.find(')') == -1:
             data += '()'
 
-        self.socket.sendall('--start--' + data + '--end--')
+        # self.socket.sendall('--start--' + data + '--end--')
+        self.socket.sendall(data + '--end--')
 
     def send_from_file(self, filepath):
         if os.path.isfile(filepath) == False:
@@ -78,24 +80,23 @@ class ScriptCtrol(object):
             data = f.read(1024)
             if not data:
                 break
-
-            self.send(data)
-
+            self.socket.sendall(data)
+        self.socket.sendall('--end--')
         return True
 
     def recv_timer(self):
         start_pos = 0
         end_pos = 0
         recv_data = ''
-
+        total = 0
         while self.receive_loop:
             data = ''
-            data = self.socket.recv(16)
-            if not len:
-                continue
+            data = self.socket.recv(8142)
 
             print('type',type(data),len(data))
-            print('ReceiveData[%s]\n' % repr(data))
+            # print('ReceiveData[%s]\n' % repr(data))
+            total += len(data)
+            print "len: ",total
             start_pos = data.find('--start--')
             end_pos = data.find('--end--')
             # print start_pos,end_pos
@@ -118,7 +119,7 @@ class ScriptCtrol(object):
                 # process finish clear data
                 recv_data = ''
 
-            sleep(1)
+            # sleep(1)
         print('Exit recv_timer()')
 
 if __name__ == '__main__':
@@ -132,7 +133,7 @@ if __name__ == '__main__':
         elif send_data == 'quit':
             break
         else:
-            send_data = self.preprocess(send_data)
+            send_data = script_client.preprocess(send_data)
 
         script_client.send(send_data)
 

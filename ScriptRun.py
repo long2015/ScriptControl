@@ -18,9 +18,10 @@ class DataProcesser(object):
 			bin_epos= data.find('}--end--')
 			bin_data = data[bin_spos+6:bin_epos]
 			# print 'bin_data:',bin_data
-			f = open('test.bin','w')
+			f = open('test.bmp','w')
 			f.write(bin_data)
 			f.close()
+			return "OK BMP"
 		else:
 			dictdata = eval(data)
 
