@@ -172,8 +172,8 @@ class ScriptWindow(QWidget):
 
     def OnSnap(self):
         print("Snap one picture")
-        self.scriptctrl.send("Screen('test.png')")
-        self.data += 'Screen("/var/test.png")'
+        self.scriptctrl.send("Screen('')")
+        self.data += "Screen('')\n"
         self.OnUpdate()
 
     def OnQuit(self):

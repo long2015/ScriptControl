@@ -1,3 +1,4 @@
+from datetime import datetime
 
 class DataProcesser(object):
 	"""docstring for DataProcesser"""
@@ -9,27 +10,24 @@ class DataProcesser(object):
 		self.methodlist['help'] = self.on_help
 		self.methodlist['startRec'] = self.on_startRec
 		self.methodlist['stopRec'] = self.on_stopRec
+		self.methodlist['screen'] = self.on_screen
 
 	def process(self, data):
-		print('DataProcesser:', data)
-		bin_spos =  data.find('"bin"')
+		# print('DataProcesser:', data)
+		bin_spos =  data.find('"bin":')
+		bin_data = None
 		if bin_spos != -1:
-			dictdata = eval(data[:bin_spos-1] + '}')
+			# have binary data
 			bin_epos= data.find('}--end--')
 			bin_data = data[bin_spos+6:bin_epos]
-			# print 'bin_data:',bin_data
-			f = open('test.bmp','w')
-			f.write(bin_data)
-			f.close()
-			return "OK BMP"
-		else:
-			dictdata = eval(data)
+			data = data[:bin_spos-1] + '}'
 
+		dictdata = eval(data)
 		method = dictdata['method']
 		param = dictdata['param']
 		print('type',type(method),type(param))
 
-		return self.methodlist[method](param)
+		return self.methodlist[method](param,bin_data)
 
 	def issupport(self, name):
 		for i in self.methodlist:
@@ -38,7 +36,7 @@ class DataProcesser(object):
 
 		return False
 
-	def on_help(self, list_data):
+	def on_help(self, list_data,bin_data):
 	    result = 'Support Command:  '
 
 	    for i in range(len(list_data)):
@@ -53,7 +51,7 @@ class DataProcesser(object):
 		self.record_file = open(filename,'w')
 		print('create file:',self.record_file)
 
-	def on_startRec(self, list_data):
+	def on_startRec(self, list_data,bin_data):
 		result = ''
 		for i in list_data:
 			result += '%s\n' % i
@@ -63,8 +61,16 @@ class DataProcesser(object):
 
 		return result
 
-	def on_stopRec(self, list_data):
+	def on_stopRec(self, list_data,bin_data):
 		print 'close file '
 		self.record_file.close()
 		self.record_file = None
 
+	def on_screen(self, list_data,bin_data):
+		now = datetime.today()
+		# print 'bin_data:',bin_data
+		filename = "%s-%s-%s.bmp" % (now.hour,now.minute,now.second)
+		f = open(filename,'wb')
+		f.write(bin_data)
+		f.close()
+		return "OK BMP,size:%d" % len(bin_data)

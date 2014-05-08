@@ -55,7 +55,7 @@ class ScriptCtrol(object):
         self.data_processer.set_recfilename(filename)
 
     def process_data(self, data):
-        print('Data', data)
+        # print('Data', data)
         #dictdata = eval(data)
         result = self.data_processer.process(data)
         # print('method:',dictdata['method'],result)
@@ -91,7 +91,7 @@ class ScriptCtrol(object):
         total = 0
         while self.receive_loop:
             data = ''
-            data = self.socket.recv(8142)
+            data = self.socket.recv(64*1024)
 
             print('type',type(data),len(data))
             # print('ReceiveData[%s]\n' % repr(data))
