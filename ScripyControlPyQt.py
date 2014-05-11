@@ -48,10 +48,23 @@ class ScriptWindow(QWidget):
         self.toolGrid.addWidget(self.quitButton,0,3)
 
         # text show widget
+        self.cmdListWidget = QListWidget()
+        self.cmdListWidget.addItem(u'LClick<左键单击>')
+        self.groupBox = QGroupBox('command lists')
+        self.listLayout = QVBoxLayout()
+        self.listLayout.addWidget(self.cmdListWidget)
+        self.groupBox.setLayout(self.listLayout)
+        #
         self.textEdit = QTextEdit()
         self.textEdit.setReadOnly(True)
         c = QColor(0x666666)
         self.textEdit.setTextColor(c)
+        #
+        self.textGrid = QGridLayout()
+        self.textGrid.addWidget(self.groupBox,0,0)
+        self.textGrid.addWidget(self.textEdit,0,3)
+        self.textGrid.setColumnStretch(0,3)
+        self.textGrid.setColumnStretch(3,7)
 
         # bottom layout
         self.inputEdit = QLineEdit()
@@ -66,7 +79,7 @@ class ScriptWindow(QWidget):
         self.mainLayout = QVBoxLayout()
         self.mainLayout.addLayout(self.toolGrid)
         self.mainLayout.addLayout(self.topGrid)
-        self.mainLayout.addWidget(self.textEdit)
+        self.mainLayout.addLayout(self.textGrid)
         self.mainLayout.addLayout(self.bottomLayout)
 
         # testwidget = QWidget()
@@ -81,7 +94,7 @@ class ScriptWindow(QWidget):
         # layout.addWidget(self.tabWidget)
         # self.setLayout(layout)
         self.setLayout(self.mainLayout)
-        self.resize(400,300)
+        self.resize(600,450)
 
         # sigal slot
         self.connect(self.recordButton, QtCore.SIGNAL('clicked()'), self.OnRecord)
@@ -92,6 +105,7 @@ class ScriptWindow(QWidget):
         self.connect(self.sendButton, QtCore.SIGNAL('clicked()'), self.OnSend)
         self.connect(self.clearButton, QtCore.SIGNAL('clicked()'), self.OnClear)
         QtCore.QObject.connect(self, QtCore.SIGNAL("updateText()"), self.OnUpdate)
+        self.connect(self.cmdListWidget, QtCore.SIGNAL('itemDoubleClicked(QListWidgetItem*)'),self.OnCmdDClick)
 
     def OnConnect(self):
         scriptctrl = self.scriptctrl
@@ -183,6 +197,12 @@ class ScriptWindow(QWidget):
             print('quit ')
             self.scriptctrl.disconnect()
             app.exit(0)
+
+    def OnCmdDClick(self, item):
+        cmd = str(item.text().toUtf8())
+        pos = cmd.find('<')
+        self.data += (cmd[:pos] + '()\n')
+        self.OnUpdate()
 
     # key event
     def keyReleaseEvent(self, keyEvent):
