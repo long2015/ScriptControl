@@ -196,7 +196,8 @@ class ScriptWindow(QWidget):
         if reply == QMessageBox.Yes:
             print('quit ')
             self.scriptctrl.disconnect()
-            app.exit(0)
+            print('quit ok')
+            os._exit(0)
 
     def OnCmdDClick(self, item):
         cmd = str(item.text().toUtf8())
@@ -216,7 +217,7 @@ class ScriptWindow(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    mainWindow = ScriptWindow()
+    mainWindow = ScriptWindow(app)
     mainWindow.show()
 
     sys.exit(app.exec_())

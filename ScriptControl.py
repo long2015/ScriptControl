@@ -8,7 +8,7 @@ from threading import Timer
 from time import sleep
 import json
 
-HOST = '172.8.1.101'    # The remote host
+HOST = '192.168.1.56'    # The remote host
 PORT = 8086             # The same port as used by the server
 
 class ScriptCtrol(object):
@@ -19,6 +19,7 @@ class ScriptCtrol(object):
         self.connct_state = False
         self.receive_loop = True
         self.record_filename = None
+        self.timer = Timer(1,self.recv_timer)
         self.data_processer = DataProcesser()
 
     def attach(self,func):
@@ -31,14 +32,15 @@ class ScriptCtrol(object):
 
         self.connct_state = True
         #start timer to receive data
-        self.timer = Timer(1,self.recv_timer)
         self.receive_loop = True
         self.timer.start()
 
     def disconnect(self):
         self.receive_loop = False
         self.timer.cancel()
-        self.socket.close()
+        if self.socket != None:
+            self.socket.close()
+            self.socket = None
         self.connct_state = False
 
     def get_connstate(self):
@@ -139,5 +141,4 @@ if __name__ == '__main__':
 
     print('Close Socket. quit program.')
     script_client.disconnect()
-
-    sys.exit(0)
+    os._exit(0)
