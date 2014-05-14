@@ -6,11 +6,11 @@ import os
 from PyQt4 import QtCore
 from PyQt4.QtGui import *
 from ScriptControl import *
-
+from language import *
 class ScriptWindow(QWidget):
     """docstring for ScriptWindow"""
     def __init__(self):
-        super(ScriptWindow, self).__init__()
+        super(ScriptWindow,self).__init__()
 
         self.data = ''
         self.connctState = False
@@ -20,37 +20,33 @@ class ScriptWindow(QWidget):
 
         # create widget
         # 
-        # device info: ip port
-        self.setWindowTitle('ScriptAutoTest')
-        self.ipLine = QLineEdit('172.8.1.101')
-        self.portLine = QLineEdit('8086')
-        self.connectButton = QPushButton('Connect',self)
-        self.connectButton.setFocus()
-        self.topGrid = QGridLayout()
-        self.topGrid.addWidget(self.ipLine,0,0)
-        self.topGrid.addWidget(self.portLine,0,3)
-        self.topGrid.addWidget(self.connectButton,0,4)
-        self.topGrid.setColumnStretch(0,3)
-        self.topGrid.setColumnStretch(3,1)
-        self.topGrid.setColumnStretch(4,3)
+        # create top button
+        self.newButton = QPushButton(tr('newscript'),self)
+        self.editButton = QPushButton(tr('editscript'),self)
+        self.loadButton = QPushButton(tr('loadscript'), self)
+        self.runButton = QPushButton(tr('runscript'),self)
+        self.recordButton = QPushButton(tr('record'), self)
+        self.snapButton = QPushButton(tr('snapscreen'), self)
 
-        # control command
-        self.recordButton = QPushButton('Record', self)
-        self.loadButton = QPushButton('Load', self)
-        self.snapButton = QPushButton('Snap', self)
-        self.recordButton.setEnabled(False)
-        self.loadButton.setEnabled(False)
-        self.quitButton = QPushButton('Quit', self)
-        self.toolGrid = QGridLayout()
-        self.toolGrid.addWidget(self.recordButton,0,0)
-        self.toolGrid.addWidget(self.loadButton,0,1)
-        self.toolGrid.addWidget(self.snapButton,0,2)
-        self.toolGrid.addWidget(self.quitButton,0,3)
+        self.loginButton = QPushButton(tr('login'),self)
+        self.aboutButton = QPushButton(tr('about'), self)
+        self.quitButton = QPushButton(tr('quit'),self)
+
+        self.topGrid = QGridLayout()
+        self.topGrid.addWidget(self.newButton,0,0)
+        self.topGrid.addWidget(self.editButton,0,1)
+        self.topGrid.addWidget(self.loadButton,0,2)
+        self.topGrid.addWidget(self.runButton,0,3)
+        self.topGrid.addWidget(self.recordButton,0,4)
+        self.topGrid.addWidget(self.snapButton,0,5)
+        self.topGrid.addWidget(self.loginButton,0,6)
+        self.topGrid.addWidget(self.aboutButton,0,7)
+        self.topGrid.addWidget(self.quitButton,0,8,2,2)
 
         # text show widget
         self.cmdListWidget = QListWidget()
         self.cmdListWidget.addItem(u'LClick<左键单击>')
-        self.groupBox = QGroupBox('command lists')
+        self.groupBox = QGroupBox(tr('commandlists'))
         self.listLayout = QVBoxLayout()
         self.listLayout.addWidget(self.cmdListWidget)
         self.groupBox.setLayout(self.listLayout)
@@ -65,34 +61,11 @@ class ScriptWindow(QWidget):
         self.textGrid.addWidget(self.textEdit,0,3)
         self.textGrid.setColumnStretch(0,3)
         self.textGrid.setColumnStretch(3,7)
-
-        # bottom layout
-        self.inputEdit = QLineEdit()
-        self.sendButton = QPushButton('Send', self)
-        self.clearButton = QPushButton('clear', self)
-        self.bottomLayout = QGridLayout()
-        self.bottomLayout.addWidget(self.inputEdit,0,0)
-        self.bottomLayout.addWidget(self.sendButton,0,1)
-        self.bottomLayout.addWidget(self.clearButton,0,2)
-
+        
         # widget layout
         self.mainLayout = QVBoxLayout()
-        self.mainLayout.addLayout(self.toolGrid)
         self.mainLayout.addLayout(self.topGrid)
         self.mainLayout.addLayout(self.textGrid)
-        self.mainLayout.addLayout(self.bottomLayout)
-
-        # testwidget = QWidget()
-        # testwidget.setLayout(self.mainLayout)
-        # testEdit = QTextEdit('test tab')
-        # self.tabWidget = QTabWidget()
-        # icon = QIcon('nopic');
-        # self.tabWidget.setIconSize(QtCore.QSize(10,20))
-        # self.tabWidget.addTab(testwidget,icon,'ScriptCtrol')
-        # self.tabWidget.addTab(testEdit,'test tab')
-        # layout = QHBoxLayout()
-        # layout.addWidget(self.tabWidget)
-        # self.setLayout(layout)
         self.setLayout(self.mainLayout)
         self.resize(600,450)
 
@@ -101,12 +74,12 @@ class ScriptWindow(QWidget):
         self.connect(self.loadButton, QtCore.SIGNAL('clicked()'), self.OnLoadFile)
         self.connect(self.snapButton, QtCore.SIGNAL('clicked()'), self.OnSnap)
         self.connect(self.quitButton, QtCore.SIGNAL('clicked()'), self.OnQuit)
-        self.connect(self.connectButton, QtCore.SIGNAL('clicked()'), self.OnConnect)
-        self.connect(self.sendButton, QtCore.SIGNAL('clicked()'), self.OnSend)
-        self.connect(self.clearButton, QtCore.SIGNAL('clicked()'), self.OnClear)
+        self.connect(self.loginButton, QtCore.SIGNAL('clicked()'), self.OnConnect)
+        # self.connect(self.sendButton, QtCore.SIGNAL('clicked()'), self.OnSend)
+        # self.connect(self.clearButton, QtCore.SIGNAL('clicked()'), self.OnClear)
         QtCore.QObject.connect(self, QtCore.SIGNAL("updateText()"), self.OnUpdate)
         self.connect(self.cmdListWidget, QtCore.SIGNAL('itemDoubleClicked(QListWidgetItem*)'),self.OnCmdDClick)
-
+       
     def OnConnect(self):
         scriptctrl = self.scriptctrl
 
@@ -217,7 +190,7 @@ class ScriptWindow(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    mainWindow = ScriptWindow(app)
+    mainWindow = ScriptWindow()
     mainWindow.show()
 
     sys.exit(app.exec_())
