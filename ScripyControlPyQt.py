@@ -25,6 +25,7 @@ class ScriptWindow(QWidget):
         # create widget
         # 
         # create top button
+        # how to change the button size???
         self.newButton = QPushButton(tr('newscript'),self)
         self.newButton.setIcon(new_icon)
         self.newButton.setIconSize(QtCore.QSize(10,30))
