@@ -6,7 +6,7 @@ from PyQt4.QtGui import *
 lang = {
 	'newscript' : u'新建',
 	'editscript' : u'修改',
-	'loadscript' : u'加载',
+	'openscript' : u'打开',
 	'runscript' : u'运行',
 	'record' : u'录制',
 	'stop' : u'停止',

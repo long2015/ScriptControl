@@ -7,6 +7,39 @@ from PyQt4 import QtCore
 from PyQt4.QtGui import *
 from ScriptControl import *
 from language import *
+class LoginDialog(QDialog):
+    """docstring for LoginDialog"""
+    def __init__(self):
+        super(LoginDialog, self).__init__()
+
+        self.ipLine = QLineEdit()
+        self.portLine = QLineEdit()
+
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.ipLine)
+        self.layout.addWidget(self.portLine)
+        self.buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+            QtCore.Qt.Horizontal, self)
+        self.layout.addWidget(self.buttons)
+        self.setLayout(self.layout)
+        # self.setModal(True)
+        # self.show()
+ 
+        # self.connect(self.buttons, QtCore.SIGNAL('accepted()'), self,QtCore.SLOT('quit()'))
+    def OnQuit(self):
+        print quit
+
+    def IpPort(self):
+        return self.ipLine.text(),int(self.portLine.text())
+
+    @staticmethod
+    def GetIpPort():
+        dialog = LoginDialog()
+        result = dialog.exec_()
+        ip,port = dialog.IpPort()
+        return (ip, port, result == QDialog.Accepted)
+
 class ScriptWindow(QWidget):
     """docstring for ScriptWindow"""
     def __init__(self):
@@ -27,11 +60,8 @@ class ScriptWindow(QWidget):
         # create top button
         # how to change the button size???
         self.newButton = QPushButton(tr('newscript'),self)
-        self.newButton.setIcon(new_icon)
-        self.newButton.setIconSize(QtCore.QSize(10,30))
-
+        self.openButton = QPushButton(tr('openscript'), self)
         self.editButton = QPushButton(tr('editscript'),self)
-        self.loadButton = QPushButton(tr('loadscript'), self)
         self.runButton = QPushButton(tr('runscript'),self)
         self.recordButton = QPushButton(tr('record'), self)
         self.snapButton = QPushButton(tr('snapscreen'), self)
@@ -42,8 +72,8 @@ class ScriptWindow(QWidget):
 
         self.topGrid = QHBoxLayout()
         self.topGrid.addWidget(self.newButton)
+        self.topGrid.addWidget(self.openButton)
         self.topGrid.addWidget(self.editButton)
-        self.topGrid.addWidget(self.loadButton)
         self.topGrid.addWidget(self.runButton)
         self.topGrid.addWidget(self.recordButton)
         self.topGrid.addWidget(self.snapButton)
@@ -52,39 +82,53 @@ class ScriptWindow(QWidget):
         self.topGrid.addWidget(self.quitButton)
         self.topGrid.addWidget(self.lable)
         self.topGrid.setStretchFactor (self.lable,1)
+        # adjust the widget
+        for i in range(self.topGrid.count()):
+            item = self.topGrid.itemAt(i)
+            item.widget().setMinimumWidth(60)
+            item.widget().setMinimumHeight(40)
+
 
         # text show widget
         self.cmdListWidget = QListWidget()
-        # self.cmdListWidget.addItem(u'LClick<左键单击>')
         self.groupBox = QGroupBox(tr('commandlists'))
         self.listLayout = QVBoxLayout()
         self.listLayout.addWidget(self.cmdListWidget)
         self.groupBox.setLayout(self.listLayout)
+
         #
         self.textEdit = QTextEdit()
         self.textEdit.setReadOnly(True)
         c = QColor(0x666666)
         self.textEdit.setTextColor(c)
+        font = QFont("Courier")
+        self.textEdit.setCurrentFont(font)
+        metrics = QFontMetrics(font);
+        self.textEdit.setTabStopWidth(4*metrics.width(' '))
+
         #
         self.textGrid = QGridLayout()
         self.textGrid.addWidget(self.groupBox,0,0)
-        self.textGrid.addWidget(self.textEdit,0,3)
-        self.textGrid.setColumnStretch(3,7)
+        self.textGrid.addWidget(self.textEdit,0,2)
+        self.textGrid.setColumnStretch(2,8)
         
         # widget layout
         self.mainLayout = QVBoxLayout()
         self.mainLayout.addLayout(self.topGrid)
         self.mainLayout.addLayout(self.textGrid)
         self.setLayout(self.mainLayout)
+        self.setWindowTitle('Dahua Demon v0.1')
         self.resize(740,620)
+
         # sigal slot
+        self.connect(self.newButton, QtCore.SIGNAL('clicked()'), self.OnNewFile)
         self.connect(self.recordButton, QtCore.SIGNAL('clicked()'), self.OnRecord)
-        self.connect(self.loadButton, QtCore.SIGNAL('clicked()'), self.OnLoadFile)
+        self.connect(self.openButton, QtCore.SIGNAL('clicked()'), self.OnOpenFile)
         self.connect(self.snapButton, QtCore.SIGNAL('clicked()'), self.OnSnap)
         self.connect(self.quitButton, QtCore.SIGNAL('clicked()'), self.OnQuit)
         self.connect(self.loginButton, QtCore.SIGNAL('clicked()'), self.OnConnect)
-        # self.connect(self.sendButton, QtCore.SIGNAL('clicked()'), self.OnSend)
         # self.connect(self.clearButton, QtCore.SIGNAL('clicked()'), self.OnClear)
+        self.connect(self.aboutButton, QtCore.SIGNAL('clicked()'), self.OnAbout)
         QtCore.QObject.connect(self, QtCore.SIGNAL("updateText()"), self.OnUpdate)
         QtCore.QObject.connect(self, QtCore.SIGNAL('updatelist()'), self.OnUpdateList)
         self.connect(self.cmdListWidget, QtCore.SIGNAL('itemDoubleClicked(QListWidgetItem*)'),self.OnCmdDClick)
@@ -93,6 +137,9 @@ class ScriptWindow(QWidget):
         scriptctrl = self.scriptctrl
 
         if scriptctrl.get_connstate() == False:
+
+            print LoginDialog.GetIpPort()
+            return 
             ip = '172.8.1.101'
             port = 8086
             print('ip:%s,port:%d' % (ip,port))
@@ -111,13 +158,13 @@ class ScriptWindow(QWidget):
             self.loginButton.setText(tr('logout'))
 
         self.recordButton.setEnabled(state)
-        self.loadButton.setEnabled(state)
+        self.openButton.setEnabled(state)
         # self.ipLine.setDisabled(state)
         # self.portLine.setDisabled(state)
 
     def OnUpdate(self):
         print('OnUpdate')
-        self.textEdit.setText(self.data)
+        self.textEdit.setPlainText(self.data)
 
     def OnUpdateList(self):
         for i in self.cmdlist:
@@ -164,14 +211,27 @@ class ScriptWindow(QWidget):
     def StopRec(self):
         self.scriptctrl.send('stopRec')
 
-    def OnLoadFile(self):
+    def OnNewFile(self):
+        self.textEdit.setReadOnly(False)
+        self.textEdit.setFocus()
+        self.data = ''
+        self.OnUpdate()
+
+    def OnOpenFile(self):
+        # tips 
+        # save current file
+
+        # chose a file to open
         filename = QFileDialog.getOpenFileName(self, 'Open file', './')
         if not os.path.isfile(filename):
             return
-        if self.scriptctrl.send_from_file(filename):
-            self.data += 'send file successed!\n'
-        else:
-            self.data += 'send file Failed.\n'
+
+        f = open(filename)
+        self.data = ''
+        for line in f.readlines():
+            self.data += line.decode('utf-8')
+        self.textEdit.setReadOnly(False)
+
         self.OnUpdate()
 
     def OnSnap(self):
@@ -194,6 +254,10 @@ class ScriptWindow(QWidget):
         pos = cmd.find('<')
         self.data += (cmd[:pos] + '()\n')
         self.OnUpdate()
+
+    def OnAbout(self):
+        QMessageBox.information(self,QtCore.QString('About'),
+                QtCore.QString('Dehua Demon v0.1\nto DahuaYanFa'))
 
     # key event
     def keyReleaseEvent(self, keyEvent):
