@@ -26,6 +26,8 @@ class ScriptCtrol(object):
         self.sigfunc = func
 
     def connect_dvr(self, ip, port):
+        if self.get_connstate() == True:
+            return True
         print('ip:%s,port:%d' % (ip,port))
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((ip, port))
@@ -43,6 +45,9 @@ class ScriptCtrol(object):
             self.send('getcommands')
 
     def disconnect(self):
+        if self.get_connstate() == False:
+            return True
+
         self.receive_loop = False
         self.timer.cancel()
         del self.timer
