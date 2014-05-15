@@ -13,39 +13,48 @@ class ScriptWindow(QWidget):
         super(ScriptWindow,self).__init__()
 
         self.data = ''
+        self.cmdlist = []
         self.connctState = False
         self.scriptctrl = ScriptCtrol()
         self.scriptctrl.attach(self.ReveiveFunc)
         print('attach Func:',self.ReveiveFunc)
 
+        # icon
+        new_icon = QIcon('new.pngd')
+
         # create widget
         # 
         # create top button
         self.newButton = QPushButton(tr('newscript'),self)
+        self.newButton.setIcon(new_icon)
+        self.newButton.setIconSize(QtCore.QSize(10,30))
+
         self.editButton = QPushButton(tr('editscript'),self)
         self.loadButton = QPushButton(tr('loadscript'), self)
         self.runButton = QPushButton(tr('runscript'),self)
         self.recordButton = QPushButton(tr('record'), self)
         self.snapButton = QPushButton(tr('snapscreen'), self)
-
+        self.lable = QLabel('',self)
         self.loginButton = QPushButton(tr('login'),self)
         self.aboutButton = QPushButton(tr('about'), self)
         self.quitButton = QPushButton(tr('quit'),self)
 
-        self.topGrid = QGridLayout()
-        self.topGrid.addWidget(self.newButton,0,0)
-        self.topGrid.addWidget(self.editButton,0,1)
-        self.topGrid.addWidget(self.loadButton,0,2)
-        self.topGrid.addWidget(self.runButton,0,3)
-        self.topGrid.addWidget(self.recordButton,0,4)
-        self.topGrid.addWidget(self.snapButton,0,5)
-        self.topGrid.addWidget(self.loginButton,0,6)
-        self.topGrid.addWidget(self.aboutButton,0,7)
-        self.topGrid.addWidget(self.quitButton,0,8,2,2)
+        self.topGrid = QHBoxLayout()
+        self.topGrid.addWidget(self.newButton)
+        self.topGrid.addWidget(self.editButton)
+        self.topGrid.addWidget(self.loadButton)
+        self.topGrid.addWidget(self.runButton)
+        self.topGrid.addWidget(self.recordButton)
+        self.topGrid.addWidget(self.snapButton)
+        self.topGrid.addWidget(self.loginButton)
+        self.topGrid.addWidget(self.aboutButton)
+        self.topGrid.addWidget(self.quitButton)
+        self.topGrid.addWidget(self.lable)
+        self.topGrid.setStretchFactor (self.lable,1)
 
         # text show widget
         self.cmdListWidget = QListWidget()
-        self.cmdListWidget.addItem(u'LClick<左键单击>')
+        # self.cmdListWidget.addItem(u'LClick<左键单击>')
         self.groupBox = QGroupBox(tr('commandlists'))
         self.listLayout = QVBoxLayout()
         self.listLayout.addWidget(self.cmdListWidget)
@@ -59,7 +68,6 @@ class ScriptWindow(QWidget):
         self.textGrid = QGridLayout()
         self.textGrid.addWidget(self.groupBox,0,0)
         self.textGrid.addWidget(self.textEdit,0,3)
-        self.textGrid.setColumnStretch(0,3)
         self.textGrid.setColumnStretch(3,7)
         
         # widget layout
@@ -67,8 +75,7 @@ class ScriptWindow(QWidget):
         self.mainLayout.addLayout(self.topGrid)
         self.mainLayout.addLayout(self.textGrid)
         self.setLayout(self.mainLayout)
-        self.resize(600,450)
-
+        self.resize(740,620)
         # sigal slot
         self.connect(self.recordButton, QtCore.SIGNAL('clicked()'), self.OnRecord)
         self.connect(self.loadButton, QtCore.SIGNAL('clicked()'), self.OnLoadFile)
@@ -78,52 +85,60 @@ class ScriptWindow(QWidget):
         # self.connect(self.sendButton, QtCore.SIGNAL('clicked()'), self.OnSend)
         # self.connect(self.clearButton, QtCore.SIGNAL('clicked()'), self.OnClear)
         QtCore.QObject.connect(self, QtCore.SIGNAL("updateText()"), self.OnUpdate)
+        QtCore.QObject.connect(self, QtCore.SIGNAL('updatelist()'), self.OnUpdateList)
         self.connect(self.cmdListWidget, QtCore.SIGNAL('itemDoubleClicked(QListWidgetItem*)'),self.OnCmdDClick)
-       
+
     def OnConnect(self):
         scriptctrl = self.scriptctrl
 
         if scriptctrl.get_connstate() == False:
-            ip = self.ipLine.text()
-            port = int(self.portLine.text())
+            ip = '172.8.1.101'
+            port = 8086
             print('ip:%s,port:%d' % (ip,port))
 
             scriptctrl.connect_dvr(ip, port)
         else:
             print('disconnect scriptctrl')
             scriptctrl.disconnect()
+            self.cmdListWidget.clear()
 
         # 
         state = scriptctrl.get_connstate()
         if state == False:
-            self.connectButton.setText('Connect')
+            self.loginButton.setText(tr('login'))
         else:
-            self.connectButton.setText('Disconnect')
-            self.inputEdit.setFocus()
+            self.loginButton.setText(tr('logout'))
 
         self.recordButton.setEnabled(state)
         self.loadButton.setEnabled(state)
-        self.ipLine.setDisabled(state)
-        self.portLine.setDisabled(state)
+        # self.ipLine.setDisabled(state)
+        # self.portLine.setDisabled(state)
 
     def OnUpdate(self):
         print('OnUpdate')
         self.textEdit.setText(self.data)
 
+    def OnUpdateList(self):
+        for i in self.cmdlist:
+            print i
+            self.cmdListWidget.addItem(i)
+
     def ReveiveFunc(self,data):
-        print('ReveiveFunc:%s,' % data)
-        self.data += (data + '\n')
-        self.emit(QtCore.SIGNAL("updateText()"))
+        print('ReveiveFunc:%s,' % data[0])
+        if data[0] == 'getcommands':
+            self.cmdlist = data[1]
+            self.emit(QtCore.SIGNAL('updatelist()'))
+        else:
+            self.data += (data[1] + '\n')
+            self.emit(QtCore.SIGNAL("updateText()"))
 
     def OnSend(self):
-        data = str(self.inputEdit.text())
         if len(data) == 0:
             return
 
         print('Type:',type(data))
         self.data += (data + '\n')
         self.OnUpdate()
-        self.inputEdit.setText('')
         self.scriptctrl.send(data)
 
     def OnClear(self):
@@ -132,12 +147,13 @@ class ScriptWindow(QWidget):
 
     def OnRecord(self):
         button = self.recordButton
-        if button.text() == 'Record':
+        if button.text() == tr('record'):
             self.StartRec()
-            button.setText('Stop')
+            button.setText(tr('stop'))
         else:
             self.StopRec()
-            button.setText('Record')
+            button.setText(tr('record'))
+
     def StartRec(self):
         filename = QFileDialog.getSaveFileName(self, 'Save file', './recod.txt')
         print filename
@@ -181,9 +197,7 @@ class ScriptWindow(QWidget):
     # key event
     def keyReleaseEvent(self, keyEvent):
         if keyEvent.key() == 0x01000004:
-            if self.inputEdit.hasFocus():
-                self.OnSend()
-            elif self.connectButton.hasFocus():
+            if self.connectButton.hasFocus():
                 self.OnConnect()
         elif keyEvent.key() == 0x01000000:
             app.exit(0)

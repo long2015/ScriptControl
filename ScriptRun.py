@@ -11,7 +11,8 @@ class DataProcesser(object):
 		self.methodlist['startRec'] = self.on_startRec
 		self.methodlist['stopRec'] = self.on_stopRec
 		self.methodlist['screen'] = self.on_screen
-
+		self.methodlist['getcommands'] = self.on_getcommands
+		
 	def process(self, data):
 		# print('DataProcesser:', data)
 		bin_spos =  data.find('"bin":')
@@ -25,9 +26,9 @@ class DataProcesser(object):
 		dictdata = eval(data)
 		method = dictdata['method']
 		param = dictdata['param']
-		print('type',type(method),type(param))
+		print('type:',type(method),type(param))
 
-		return self.methodlist[method](param,bin_data)
+		return (method,self.methodlist[method](param,bin_data))
 
 	def issupport(self, name):
 		for i in self.methodlist:
@@ -46,6 +47,8 @@ class DataProcesser(object):
 
 	    result += '\n'
 	    return result
+	def on_getcommands(self,list_data,bin_data):
+		return list_data
 
 	def set_recfilename(self, filename):
 		self.record_file = open(filename,'w')
@@ -66,6 +69,8 @@ class DataProcesser(object):
 		self.record_file.close()
 		self.record_file = None
 
+		return 'Stop Record'
+
 	def on_screen(self, list_data,bin_data):
 		now = datetime.today()
 		# print 'bin_data:',bin_data
@@ -73,4 +78,4 @@ class DataProcesser(object):
 		f = open(filename,'wb')
 		f.write(bin_data)
 		f.close()
-		return "OK BMP,size:%d" % len(bin_data)
+		return "save file:%s,size:%d" % (filename,len(bin_data))

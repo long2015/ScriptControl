@@ -19,7 +19,7 @@ class ScriptCtrol(object):
         self.connct_state = False
         self.receive_loop = True
         self.record_filename = None
-        self.timer = Timer(1,self.recv_timer)
+        self.timer = None
         self.data_processer = DataProcesser()
 
     def attach(self,func):
@@ -33,12 +33,23 @@ class ScriptCtrol(object):
         self.connct_state = True
         #start timer to receive data
         self.receive_loop = True
-        self.timer.start()
+
+
+        if self.connct_state:
+            # 
+            self.timer = Timer(1,self.recv_timer)
+            self.timer.start()
+
+            self.send('getcommands')
 
     def disconnect(self):
         self.receive_loop = False
         self.timer.cancel()
+        del self.timer
+        self.timer = None
+
         if self.socket != None:
+            self.socket.shutdown(socket.SHUT_RDWR)
             self.socket.close()
             self.socket = None
         self.connct_state = False
