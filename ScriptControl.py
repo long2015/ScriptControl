@@ -41,8 +41,8 @@ class ScriptCtrol(object):
             # 
             self.timer = Timer(1,self.recv_timer)
             self.timer.start()
-
-            self.send('getcommands')
+            # sleep(1)
+            self.send('getcommands()')
 
     def disconnect(self):
         if self.get_connstate() == False:

@@ -24,7 +24,7 @@ executables = [
     Executable('ScripyControlPyQt.py', base=base)
 ]
 
-setup(name='ScripyControl',
+setup(name='Dahua Demon',
       version='0.1',
       description='GUI AutoTest',
       options=options,

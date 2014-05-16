@@ -52,10 +52,11 @@ class LoginDialog(QDialog):
         dialog = LoginDialog()
         result = ( dialog.exec_() == QDialog.Accepted )
 
-        ip,port,result = '',0,False
+        ip,port = '',0
         if result:
             ip,port = dialog.Data()
-            return ip, port, result
+            print ip,port
+            return str(ip), int(port), result
         else:
             return ip, port, result
 
@@ -84,7 +85,7 @@ class ScriptWindow(QWidget):
         self.runButton = QPushButton(tr('runscript'),self)
         self.recordButton = QPushButton(tr('record'), self)
         self.snapButton = QPushButton(tr('snapscreen'), self)
-        self.lable = QLabel('',self)
+        # self.lable = QLabel('',self)
         self.loginButton = QPushButton(tr('login'),self)
         self.aboutButton = QPushButton(tr('about'), self)
         self.quitButton = QPushButton(tr('quit'),self)
@@ -99,8 +100,8 @@ class ScriptWindow(QWidget):
         self.topGrid.addWidget(self.loginButton)
         self.topGrid.addWidget(self.aboutButton)
         self.topGrid.addWidget(self.quitButton)
-        self.topGrid.addWidget(self.lable)
-        self.topGrid.setStretchFactor (self.lable,1)
+        # self.topGrid.addWidget(self.lable)
+        # self.topGrid.setStretchFactor (self.lable,1)
         # adjust the widget
         for i in range(self.topGrid.count()):
             item = self.topGrid.itemAt(i)
@@ -137,13 +138,14 @@ class ScriptWindow(QWidget):
         self.mainLayout.addLayout(self.textGrid)
         self.setLayout(self.mainLayout)
         self.setWindowTitle('Dahua Demon v0.1')
-        self.resize(740,620)
+        self.setMinimumSize(740,620)
+        self.setMaximumSize(740,620)
 
         # sigal slot
         self.connect(self.newButton, QtCore.SIGNAL('clicked()'), self.OnNewFile)
         self.connect(self.recordButton, QtCore.SIGNAL('clicked()'), self.OnRecord)
         self.connect(self.openButton, QtCore.SIGNAL('clicked()'), self.OnOpenFile)
-        self.connect(self.runButton, QtCore.SIGNAL('clicked()'), self.OnRunScript)        
+        self.connect(self.runButton, QtCore.SIGNAL('clicked()'), self.OnRunScript)
         self.connect(self.snapButton, QtCore.SIGNAL('clicked()'), self.OnSnap)
         self.connect(self.quitButton, QtCore.SIGNAL('clicked()'), self.OnQuit)
         self.connect(self.loginButton, QtCore.SIGNAL('clicked()'), self.OnConnect)
@@ -157,16 +159,10 @@ class ScriptWindow(QWidget):
         scriptctrl = self.scriptctrl
 
         if scriptctrl.get_connstate() == False:
-            ip = '172.8.1.101'
-            port = 8086
-
-            (result,_ip,_port) = LoginDialog.GetIpPort()
-            if not result:
+            ip,port,result = LoginDialog.GetIpPort()
+            print ip,port,result
+            if result == False:
                 return
-
-            ip = _ip
-            port = _port
-            print('ip:%s,port:%d' % (ip,port))
 
             scriptctrl.connect_dvr(ip, port)
         else:
@@ -180,6 +176,7 @@ class ScriptWindow(QWidget):
             self.loginButton.setText(tr('login'))
         else:
             self.loginButton.setText(tr('logout'))
+            self.setWindowTitle('%s:%d - Dahua Demon' % (ip,port))
 
         self.recordButton.setEnabled(state)
         self.openButton.setEnabled(state)
@@ -193,7 +190,7 @@ class ScriptWindow(QWidget):
     def OnUpdateList(self):
         for i in self.cmdlist:
             print i
-            self.cmdListWidget.addItem(i)
+            self.cmdListWidget.addItem(i+' <>')
 
     def ReveiveFunc(self,data):
         print('ReveiveFunc:%s,' % data[0])
@@ -257,9 +254,11 @@ class ScriptWindow(QWidget):
         self.textEdit.setReadOnly(False)
 
         self.OnUpdate()
+
     def OnRunScript(self):
-        data = self.textEdit.text()
-        self.OnSend(data)
+        data = str(self.textEdit.toPlainText())
+        print type(data),data
+        self.scriptctrl.send(data)
 
     def OnSnap(self):
         print("Snap one picture")
@@ -278,7 +277,8 @@ class ScriptWindow(QWidget):
 
     def OnCmdDClick(self, item):
         cmd = str(item.text().toUtf8())
-        pos = cmd.find('<')
+        print cmd
+        pos = cmd.find(' <')
         self.data += (cmd[:pos] + '()\n')
         self.OnUpdate()
 
