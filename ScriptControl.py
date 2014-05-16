@@ -83,9 +83,6 @@ class ScriptCtrol(object):
         print result
 
     def send(self, data):
-        if data.find('(') == -1 and data.find(')') == -1:
-            data += '()'
-
         # self.socket.sendall('--start--' + data + '--end--')
         self.socket.sendall(data + '--end--')
 

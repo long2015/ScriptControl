@@ -12,33 +12,52 @@ class LoginDialog(QDialog):
     def __init__(self):
         super(LoginDialog, self).__init__()
 
-        self.ipLine = QLineEdit()
-        self.portLine = QLineEdit()
+        self.ipLine = QLineEdit('172.8.1.101')
+        self.portLine = QLineEdit('8086')
+        self.label = QLabel()
 
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.ipLine)
         self.layout.addWidget(self.portLine)
+        self.layout.addWidget(self.label)
         self.buttons = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
             QtCore.Qt.Horizontal, self)
+
         self.layout.addWidget(self.buttons)
         self.setLayout(self.layout)
-        # self.setModal(True)
-        # self.show()
+        self.setWindowTitle('Login Device')
  
-        # self.connect(self.buttons, QtCore.SIGNAL('accepted()'), self,QtCore.SLOT('quit()'))
-    def OnQuit(self):
-        print quit
+        self.connect(self.buttons, QtCore.SIGNAL('accepted()'),self.OnOK)
+        self.connect(self.buttons, QtCore.SIGNAL('rejected()'),self.OnCanle)
 
-    def IpPort(self):
-        return self.ipLine.text(),int(self.portLine.text())
+    def check(self):
+        if self.ipLine.text() == '' or self.portLine.text() == '':
+            self.label.setText('IP or Port is null')
+            return False
+        else:
+            return True
+
+    def OnOK(self):
+        if self.check():
+            QDialog.done(self,QDialog.Accepted)
+    def OnCanle(self):
+        QDialog.done(self,QDialog.Rejected)
+
+    def Data(self):
+        return self.ipLine.text(),self.portLine.text()
 
     @staticmethod
     def GetIpPort():
         dialog = LoginDialog()
-        result = dialog.exec_()
-        ip,port = dialog.IpPort()
-        return (ip, port, result == QDialog.Accepted)
+        result = ( dialog.exec_() == QDialog.Accepted )
+
+        ip,port,result = '',0,False
+        if result:
+            ip,port = dialog.Data()
+            return ip, port, result
+        else:
+            return ip, port, result
 
 class ScriptWindow(QWidget):
     """docstring for ScriptWindow"""
@@ -124,6 +143,7 @@ class ScriptWindow(QWidget):
         self.connect(self.newButton, QtCore.SIGNAL('clicked()'), self.OnNewFile)
         self.connect(self.recordButton, QtCore.SIGNAL('clicked()'), self.OnRecord)
         self.connect(self.openButton, QtCore.SIGNAL('clicked()'), self.OnOpenFile)
+        self.connect(self.runButton, QtCore.SIGNAL('clicked()'), self.OnRunScript)        
         self.connect(self.snapButton, QtCore.SIGNAL('clicked()'), self.OnSnap)
         self.connect(self.quitButton, QtCore.SIGNAL('clicked()'), self.OnQuit)
         self.connect(self.loginButton, QtCore.SIGNAL('clicked()'), self.OnConnect)
@@ -137,11 +157,15 @@ class ScriptWindow(QWidget):
         scriptctrl = self.scriptctrl
 
         if scriptctrl.get_connstate() == False:
-
-            print LoginDialog.GetIpPort()
-            return 
             ip = '172.8.1.101'
             port = 8086
+
+            (result,_ip,_port) = LoginDialog.GetIpPort()
+            if not result:
+                return
+
+            ip = _ip
+            port = _port
             print('ip:%s,port:%d' % (ip,port))
 
             scriptctrl.connect_dvr(ip, port)
@@ -233,6 +257,9 @@ class ScriptWindow(QWidget):
         self.textEdit.setReadOnly(False)
 
         self.OnUpdate()
+    def OnRunScript(self):
+        data = self.textEdit.text()
+        self.OnSend(data)
 
     def OnSnap(self):
         print("Snap one picture")
