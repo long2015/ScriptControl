@@ -41,8 +41,8 @@ class ScriptCtrol(object):
             # 
             self.timer = Timer(1,self.recv_timer)
             self.timer.start()
-
-            self.send('getcommands')
+            # sleep(1)
+            self.send('getcommands()')
 
     def disconnect(self):
         if self.get_connstate() == False:
@@ -83,9 +83,6 @@ class ScriptCtrol(object):
         print result
 
     def send(self, data):
-        if data.find('(') == -1 and data.find(')') == -1:
-            data += '()'
-
         # self.socket.sendall('--start--' + data + '--end--')
         self.socket.sendall(data + '--end--')
 
