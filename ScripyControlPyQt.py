@@ -5,6 +5,7 @@ import sys
 import os
 from PyQt4 import QtCore
 from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 from ScriptControl import *
 from language import *
 class LoginDialog(QDialog):
@@ -269,7 +270,9 @@ class ScriptWindow(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    splash=QSplashScreen(QPixmap("pic/newscript.png"))
+    splash.show()
     mainWindow = ScriptWindow()
     mainWindow.show()
-
+    splash.finish(mainWindow)
     sys.exit(app.exec_())
