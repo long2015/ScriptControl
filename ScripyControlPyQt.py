@@ -118,10 +118,13 @@ class ScriptWindow(QWidget):
         self.groupBox.setLayout(self.listLayout)
 
         #
+
         self.textEdit = QTextEdit()
         self.textEdit.setReadOnly(True)
-        c = QColor(0x666666)
-        self.textEdit.setTextColor(c)
+        palette = QPalette()
+        palette.setColor(QPalette.Text, Qt.black)
+        palette.setColor(QPalette.Base, Qt.lightGray)
+        self.textEdit.setPalette(palette)
         font = QFont("Courier")
         self.textEdit.setCurrentFont(font)
         metrics = QFontMetrics(font);
